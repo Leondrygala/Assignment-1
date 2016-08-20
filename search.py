@@ -80,17 +80,22 @@ def tinyMazeSearch(problem):
 dict = {}
 class node:
     # action=[]
-    def __init__(self,state,cost,action,parent):
+    def __init__(self,state,cost,action,parent,h=0):
         self.state = state
         self.cost = cost
         self.action = action
         self.parent = parent
+        self.h=h
 
     def getState(self):
         return  self.state
 
-    def setState(self,state):
-        self.state = state
+    #heuristic
+    def getH(self):
+        return self.h
+
+    def setH(self,h):
+        self.h = h
 
     def getCost(self):
         return  self.cost
@@ -119,11 +124,11 @@ def depthFirstSearch(problem):
         print "Is the start a goal?", problem.isGoalState(problem.getStartState())
         print "Start's successors:", problem.getSuccessors(problem.getStartState())
         start = problem.getStartState()
-        dict[start]=node(start,0,None,None)
+        dict[start] = node(start, 0, [], None)
 
-        goal = dfs_in(problem, start,0)
-        print goal
-        return traceBack(goal)
+        dfs_in(problem, start,0)
+
+        return  dict["goal"].getAction()
 
 
 def traceBack(goal):
@@ -138,7 +143,12 @@ def traceBack(goal):
 
 def dfs_in(problem,parent,cost):
 
+        import copy
         for children in problem.getSuccessors(parent):
+
+            parentState = dict[parent]
+            actionlist = copy.copy(parentState.getAction())
+            actionlist.append(children[1])
 
             if problem.isGoalState(children[0]) == False:
 
@@ -146,23 +156,19 @@ def dfs_in(problem,parent,cost):
                     if(dict[children[0]].getCost()>cost+1):
 
                         dict[children[0]].setCost(cost+1)
-                        dict[children[0]].setparent(parent)
-                        dict[children[0]].setAction(children[1])
-                        result = dfs_in(problem, children[0], cost + 1)
-                        if result[0]:
-                            return (True, result[1])
+                        dict[children[0]].setParent(parent)
+                        dict[children[0]].setAction(actionlist)
+                        dfs_in(problem, children[0], cost + 1)
 
                 else:
-                    childrenState=node(children[0],cost+1,children[1],parent)
+                    childrenState=node(children[0],cost+1,actionlist,parent)
                     dict[children[0]] = childrenState;
-                    result = dfs_in(problem, children[0], cost + 1)
-                    if result[0]:
-                        return (True, result[1])
+                    dfs_in(problem, children[0], cost + 1)
+
             else:
-                    childrenState = node(children[0], cost + 1, children[1], parent)
-                    dict[children[0]] = childrenState;
-                    # dict["goalstate"]= children[0]
-                    return (True, children[0])
+                    childrenState = node(children[0], cost + 1, actionlist, parent)
+                    dict["goal"] = childrenState;
+                    return
 
 
 def breadthFirstSearch(problem):
@@ -220,7 +226,7 @@ def uniformCostSearch(problem):
         parentState=dict[parent]
 
         for children in problem.getSuccessors(parent):
-
+            print children
             actionlist = copy.copy(parentState.getAction())
             actionlist.append(children[1])
             newcost = problem.getCostOfActions(actionlist)
@@ -247,13 +253,47 @@ def nullHeuristic(state, problem=None):
     A heuristic function estimates the cost from the current state to the nearest
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
-    return 0
+    import searchAgents
+    return searchAgents.manhattanHeuristic(state, problem)
+
 
 def aStarSearch(problem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
+    from util import PriorityQueue
+    import copy
+
+    start = problem.getStartState()
+    queue = PriorityQueue()
+    dict[start] = node(start, 0, [], None)
+    queue.push(start, heuristic(start,problem))
+
+    while (not queue.isEmpty()):
+
+        parent = queue.pop()
+        parentState = dict[parent]
+
+        for children in problem.getSuccessors(parent):
+
+            actionlist = copy.copy(parentState.getAction())
+            actionlist.append(children[1])
+
+            if problem.isGoalState(children[0]) == False:
+
+                if dict.has_key(children[0]):
+                    if dict[children[0]].getCost() > parentState.getCost()+1:
+                        dict[children[0]].setCost(parentState.getCost()+1)
+                        dict[children[0]].setParent(parent)
+                        dict[children[0]].setAction(actionlist)
+                        queue.update(children[0], parentState.getCost()+1+dict[children[0]].getH())
+
+                else:
+                    h = nullHeuristic(children[0], problem)
+
+                    childrenState = node(children[0],parentState.getCost()+1, actionlist, parent,h)
+                    dict[children[0]] = childrenState
+                    queue.push(children[0], h+parentState.getCost()+1)
+            else:
+                return actionlist
 
 # Abbreviations
 bfs = breadthFirstSearch
