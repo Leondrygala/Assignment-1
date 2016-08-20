@@ -79,6 +79,7 @@ def tinyMazeSearch(problem):
 
 dict = {}
 class node:
+    # action=[]
     def __init__(self,state,cost,action,parent):
         self.state = state
         self.cost = cost
@@ -110,7 +111,7 @@ class node:
         return self.action
 
     def __str__(self):
-        return "S:%s C:%s P:%s" %(self.state,self.cost,self.parent)
+        return "S:%s C:%s A:%s P:%s" %(self.state,self.cost,self.action,self.parent)
 
 def depthFirstSearch(problem):
 
@@ -202,11 +203,44 @@ def breadthFirstSearch(problem):
 
     # raise Error("Path no found")
 
-
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    from util import PriorityQueue
+    import copy
+
+    queue = PriorityQueue()
+    start = problem.getStartState()
+    dict[start] = node(start, 0, [], None)
+
+    queue.push(start,0)
+
+    while(not queue.isEmpty()):
+
+        parent=queue.pop()
+        parentState=dict[parent]
+
+        for children in problem.getSuccessors(parent):
+
+            actionlist = copy.copy(parentState.getAction())
+            actionlist.append(children[1])
+            newcost = problem.getCostOfActions(actionlist)
+
+            if problem.isGoalState(children[0]) == False:
+
+                if dict.has_key(children[0]):
+                        if dict[children[0]].getCost()>newcost:
+
+                            dict[children[0]].setCost(newcost)
+                            dict[children[0]].setParent(parent)
+                            dict[children[0]].setAction(actionlist)
+                            queue.update(children[0],newcost)
+                else:
+                    childrenState = node(children[0], newcost , actionlist,  parent)
+                    dict[children[0]]=childrenState
+                    queue.push(children[0],newcost)
+            else:
+                return actionlist
+
 
 def nullHeuristic(state, problem=None):
     """
