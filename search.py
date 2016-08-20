@@ -157,17 +157,19 @@ def dfs_in(problem,parents,cost):
                         dict[children[0]].setCost(cost+1)
                         dict[children[0]].setParents(parents)
                         dict[children[0]].setAction(children[1])
-                        dfs_in(problem, children[0], cost + 1)
+                        if dfs_in(problem, children[0], cost + 1):
+                            return True
 
                 else:
                     childrenState=state(children[0],cost+1,children[1],parents)
                     dict[children[0]] = childrenState;
-                    dfs_in(problem,children[0],cost+1)
+                    if dfs_in(problem,children[0],cost+1):
+                        return True
             else:
                     childrenState = state(children[0], cost + 1, children[1], parents)
                     dict[children[0]] = childrenState;
                     dict["goalstate"]= children[0]
-                    return
+                    return True
 
 # def dfs_in(problem,parents):
 #
