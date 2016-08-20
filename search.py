@@ -81,10 +81,16 @@ dict = {}
 goalState=0
 class state:
     def __init__(self,state,cost,action,parents):
-        self.state=state
+        self.state = state
         self.cost = cost
         self.action = action
         self.parents = parents
+
+    def getState(self):
+        return  self.state
+
+    def setState(self,state):
+        self.state = state
 
     def getCost(self):
         return  self.cost
@@ -171,81 +177,41 @@ def dfs_in(problem,parents,cost):
                     dict["goalstate"]= children[0]
                     return True
 
-# def dfs_in(problem,parents):
-#
-#     cost=dict[parents][0]+1
-#     for children in problem.getSuccessors(parents):
-#         child=children[0]
-#         if (problem.isGoalState(child) == False):
-#             if  dict.has_key(child):
-#                 if(dict[child][0]>cost):
-#                     dict[child][0] = cost
-#                     dict[child][1] = parents
-#                     dfs_in(problem,child)
-#             else:
-#                 dict[child][0]=cost
-#                 dict[child][1] = parents
-#                 dfs_in(problem, child)
-#         else:
-#             goal=child
-#             return True
-
-# def depthFirstSearch(problem):
-#     from game import Directions
-#
-#     print "Start:", problem.getStartState()
-#
-#     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-#     print "Start's successors:", problem.getSuccessors(problem.getStartState())
-#
-#     start=problem.getStartState()
-#     nodelist.append(start)
-#
-#     dpf(problem, start)
-#
-#     list=[];
-#     for tup in path:
-#         if tup=='South' :
-#             list.append(Directions.SOUTH)
-#         elif tup == 'West':
-#             list.append(Directions.WEST)
-#         elif tup == 'North':
-#             list.append(Directions.NORTH)
-#         elif tup == 'East':
-#             list.append(Directions.EAST)
-#     print list
-#     return list
-#
-# def dpf(problem,start):
-#         for itemChild in problem.getSuccessors(start):
-#                 if(itemChild[0] not in nodelist):
-#                     nodelist.append(itemChild[0])
-#                     path.append(itemChild[1])
-#                     if (problem.isGoalState(itemChild[0]) == False):
-#                            if dpf(problem,itemChild[0]):
-#                                return True
-#                            else:
-#                                 path.pop()
-#                     else:
-#                         return True
-#         return False
-
 def breadthFirstSearch(problem):
-    import util
-    queue= util.Queue
-    visited = util.Queue
-    start = problem.getStartState()
-    queue.push(start)
 
-    while (queue.isEmpty()==False):
-        children = problem.getSuccessors(start)
-        for item in children:
-            queue.push((item, start))
-            if (problem.isGoalState(item) == False):
-                visited.push((item[0],start))
-            else:
-                print item;
-                break;
+     # node tuple containing the state and it's parent
+    start_state = problem.getStartState()
+    dict[start] = state(start,0,None,None)
+
+    # node queue contains nodes of type state (actually a node), see class on line ~80
+    node_queue = util.Queue()
+    node_queue.push(dict[start])
+
+
+    while not node_queue.isEmpty():
+        # take the oldest node off the queue and check if it's a goal
+        next_node = node_queue.pop()
+        if problem.isGoalState(next_node.getState()):
+            return TODO calculate path from next_node and return it
+        else:
+            # Find this nodes successor states and see if they are either 
+            # new states or cheaper nodes
+            successors = problem.getSuccessors(next_node.getState())
+            for suc in successors:
+                if dict.has_key(suc[0]):
+                    old_node = dict[suc[0]]
+                    if next_node.getCost() < old_node.getCost():
+                        new_node = state(suc[0], next_node.getCost() + 1, suc[1], next_node)
+                        node_queue.push(new_node)
+                        dict[suc[0]] = new_node
+                    else:
+                        continue
+                else:
+                    new_node = state(suc[0], next_node.getCost() + 1, suc[1], next_node)
+                    node_queue.push(new_node)
+                    dict[suc[0]] = new_node
+    
+    raise Error("Path no found")
 
 
 def uniformCostSearch(problem):
