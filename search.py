@@ -78,13 +78,12 @@ def tinyMazeSearch(problem):
 
 
 dict = {}
-goalState=0
-class state:
-    def __init__(self,state,cost,action,parents):
+class node:
+    def __init__(self,state,cost,action,parent):
         self.state = state
         self.cost = cost
         self.action = action
-        self.parents = parents
+        self.parent = parent
 
     def getState(self):
         return  self.state
@@ -98,11 +97,11 @@ class state:
     def setCost(self,cost):
         self.cost=cost
 
-    def getParents(self):
-        return self.parents
+    def getParent(self):
+        return self.parent
 
-    def setParents(self, parents):
-        self.parents = parents
+    def setParent(self, parent):
+        self.parent = parent
 
     def setAction(self,action):
         self.action=action
@@ -111,7 +110,7 @@ class state:
         return self.action
 
     def __str__(self):
-        return "S:%s C:%s P:%s" %(self.state,self.cost,self.parents)
+        return "S:%s C:%s P:%s" %(self.state,self.cost,self.parent)
 
 def depthFirstSearch(problem):
 
@@ -119,80 +118,68 @@ def depthFirstSearch(problem):
         print "Is the start a goal?", problem.isGoalState(problem.getStartState())
         print "Start's successors:", problem.getSuccessors(problem.getStartState())
         start = problem.getStartState()
-        dict[start]=state(start,0,0,0)
+        dict[start]=node(start,0,None,None)
 
-        dfs_in(problem, start,0)
+        goal = dfs_in(problem, start,0)
+        print goal
+        return traceBack(goal)
 
-        print  dict.values()
-        print dict["goalstate"]
-        for item in dict.values():
-            print item
-        path = traceBack( dict["goalstate"])
-        path.reverse()
-        print path
-        return path
 
 def traceBack(goal):
     path=[]
     if(dict.has_key(goal)):
-        while (dict[goal].getParents()!= 0):
-            path.append(getPath(dict[goal].getAction()))
-            parents = dict[goal].getParents()
-            goal=parents
+        while (dict[goal].getParent()!= None):
+            path.append(dict[goal].getAction())
+            parent = dict[goal].getParent()
+            goal=parent
+    path.reverse()
     return path
-from game import Directions
 
-def getPath(path):
-        if path=='South' :
-            return Directions.SOUTH
-        elif path == 'West':
-            return Directions.WEST
-        elif path == 'North':
-            return Directions.NORTH
-        elif path == 'East':
-            return Directions.EAST
+def dfs_in(problem,parent,cost):
 
-def dfs_in(problem,parents,cost):
-
-        for children in problem.getSuccessors(parents):
+        for children in problem.getSuccessors(parent):
 
             if problem.isGoalState(children[0]) == False:
 
                 if dict.has_key(children[0]):
                     if(dict[children[0]].getCost()>cost+1):
+
                         dict[children[0]].setCost(cost+1)
-                        dict[children[0]].setParents(parents)
+                        dict[children[0]].setparent(parent)
                         dict[children[0]].setAction(children[1])
-                        if dfs_in(problem, children[0], cost + 1):
-                            return True
+                        result = dfs_in(problem, children[0], cost + 1)
+                        if result[0]:
+                            return (True, result[1])
 
                 else:
-                    childrenState=state(children[0],cost+1,children[1],parents)
+                    childrenState=node(children[0],cost+1,children[1],parent)
                     dict[children[0]] = childrenState;
-                    if dfs_in(problem,children[0],cost+1):
-                        return True
+                    result = dfs_in(problem, children[0], cost + 1)
+                    if result[0]:
+                        return (True, result[1])
             else:
-                    childrenState = state(children[0], cost + 1, children[1], parents)
+                    childrenState = node(children[0], cost + 1, children[1], parent)
                     dict[children[0]] = childrenState;
-                    dict["goalstate"]= children[0]
-                    return True
+                    # dict["goalstate"]= children[0]
+                    return (True, children[0])
+
 
 def breadthFirstSearch(problem):
 
      # node tuple containing the state and it's parent
     start_state = problem.getStartState()
-    dict[start] = state(start,0,None,None)
+    dict[start_state] = node(start_state,0,None,None)
 
     # node queue contains nodes of type state (actually a node), see class on line ~80
     node_queue = util.Queue()
-    node_queue.push(dict[start])
-
+    node_queue.push(dict[start_state])
 
     while not node_queue.isEmpty():
         # take the oldest node off the queue and check if it's a goal
         next_node = node_queue.pop()
         if problem.isGoalState(next_node.getState()):
-            return TODO calculate path from next_node and return it
+            return traceBack(next_node.getState())
+
         else:
             # Find this nodes successor states and see if they are either 
             # new states or cheaper nodes
@@ -200,18 +187,20 @@ def breadthFirstSearch(problem):
             for suc in successors:
                 if dict.has_key(suc[0]):
                     old_node = dict[suc[0]]
-                    if next_node.getCost() < old_node.getCost():
-                        new_node = state(suc[0], next_node.getCost() + 1, suc[1], next_node)
+                    if next_node.getCost()+1 < old_node.getCost():
+
+                        new_node = node(suc[0], next_node.getCost() + 1, suc[1], next_node.getState())
                         node_queue.push(new_node)
-                        dict[suc[0]] = new_node
+                        dict[suc[0]] =new_node
+
                     else:
                         continue
                 else:
-                    new_node = state(suc[0], next_node.getCost() + 1, suc[1], next_node)
+                    new_node = node(suc[0], next_node.getCost() + 1, suc[1], next_node.getState())
                     node_queue.push(new_node)
-                    dict[suc[0]] = new_node
-    
-    raise Error("Path no found")
+                    dict[suc[0]]=new_node
+
+    # raise Error("Path no found")
 
 
 def uniformCostSearch(problem):
