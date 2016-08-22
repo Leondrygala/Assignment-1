@@ -291,40 +291,60 @@ class CornersProblem(search.SearchProblem):
 
     def getStartState(self):
         """
-        Returns the start state (in your state space, not the full Pacman state
-        space)
+        Returns the start state
+        return state =   ((int,int),(Bool,Bool,Bool,Bool))
+                        ((posx,posy),(Corners visited))
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return (self.startingPosition, (False,False,False,False))
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
+        param state =   ((int,int),(Bool,Bool,Bool,Bool))
+                        ((posx,posy),(Corners visited))
+        return Bool = whether input state is goal
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if state[1][0] & state[1][1] & state[1][2] & state[1][3]:
+            return True
+        return False
 
     def getSuccessors(self, state):
         """
-        Returns successor states, the actions they require, and a cost of 1.
-
-         As noted in search.py:
-            For a given state, this should return a list of triples, (successor,
-            action, stepCost), where 'successor' is a successor to the current
-            state, 'action' is the action required to get there, and 'stepCost'
-            is the incremental cost of expanding to that successor
+        Takes an input state and returns possible successor states, 
+        the actions they require, and a cost of 1.
+        
+        param state =   ((int,int),(Bool,Bool,Bool,Bool))
+                        ((posx,posy),(Corners visited))
+        return ([state],action,int) = ([state],action,int)
+                                    = (successors,direction,cost)
         """
 
         successors = []
+        x,y = state[0]
+        corners_done = state[1]
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
+            if not hitsWall:
+                #update the corner's that have been visited
+                new_corners_done = corners_done
+                for corner_index in range(0,4):
+                    # if corner is not visited, check if we just visited it
+                    if not corners_done[corner_index]:
+                        if (nextx,nexty) == self.corners[corner_index]:
+                            new_corners_done = corners_done[:corner_index] + (True,) + corners_done[corner_index+1:]
+                            #assume we can only be at one corner at a time
+                            break
+
+                successors.append(
+                    ( ((nextx,nexty),new_corners_done), 
+                    action,
+                    1
+                    ) )
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
