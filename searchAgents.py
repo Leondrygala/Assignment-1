@@ -40,6 +40,8 @@ from game import Actions
 import util
 import time
 import search
+import copy
+import sys
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -336,7 +338,8 @@ class CornersProblem(search.SearchProblem):
                     # if corner is not visited, check if we just visited it
                     if not corners_done[corner_index]:
                         if (nextx,nexty) == self.corners[corner_index]:
-                            new_corners_done = corners_done[:corner_index] + (True,) + corners_done[corner_index+1:]
+                            new_corners_done = (corners_done[:corner_index] +
+                                (True,) + corners_done[corner_index+1:])
                             #assume we can only be at one corner at a time
                             break
 
@@ -365,22 +368,58 @@ class CornersProblem(search.SearchProblem):
 
 def cornersHeuristic(state, problem):
     """
-    A heuristic for the CornersProblem that you defined.
+    Returns an estimate length to final goal state
+        param state =   ((int,int),(Bool,Bool,Bool,Bool))
+                        ((posx,posy),(Corners visited))
+        param problem = The CornersProblem instance for this layout
 
-      state:   The current search state
-               (a data structure you chose in your search problem)
-
-      problem: The CornersProblem instance for this layout.
+        return Int = heuristic estimate
 
     This function should always return a number that is a lower bound on the
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
-    corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    def manHanDist(xy1,xy2):
+        return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+    def allTrue(bools):
+        """
+        Checks if a list of bools are all True
+            param [Bool] = a list or tuple of boolean values
+            return Bool
+        """
+        for b in bools:
+            if not b:
+                return False
+        return True
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    corner_coords = problem.corners # These are the corner coordinates
+    result = 0
+    new_state = copy.copy(state)
+    pacman_pos = new_state[0]
+    vstd_corners = new_state[1]
+
+    #loop through the corners, finding the closest one each time
+    while not allTrue(vstd_corners):
+        
+        closest_food = sys.maxint
+        cloest_food_i = -1
+        for cnr_i in range(0,len(vstd_corners)):
+            if not vstd_corners[cnr_i]:
+                mhdist = manHanDist(pacman_pos, corner_coords[cnr_i])
+                if mhdist < closest_food:
+                    closest_food = mhdist
+                    cloest_food_i = cnr_i
+        
+        #Let's pretend we've moved pacman to the nearest food and ate it
+        result =+ closest_food
+        pacman_pos = corner_coords[cloest_food_i]
+        vstd_corners = (vstd_corners[:cloest_food_i] + (True,) + vstd_corners[cloest_food_i+1:])
+
+
+    return result 
+    # for corner_index in range(0,4):
+    #     if not vstd_corners[corner_index]:
+    #         result =+ manHanDist(state[0], corner_coords[corner_index])
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
