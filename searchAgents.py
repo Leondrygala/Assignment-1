@@ -348,6 +348,13 @@ class CornersProblem(search.SearchProblem):
                     action,
                     1
                     ) )
+        # if len(successors) == 2:
+        #     for suc in successors:
+        #         dx, dy = Actions.directionToVector(suc[1])
+        #         x,y = suc[0][0]
+        #         nextx, nexty = int(x + dx), int(y + dy)
+        #         hitsWall = self.walls[nextx][nexty]
+
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -375,9 +382,12 @@ def cornersHeuristic(state, problem):
 
         return Int = heuristic estimate
 
-    This function should always return a number that is a lower bound on the
-    shortest path from the state to a goal of the problem; i.e.  it should be
-    admissible (as well as consistent).
+    Heuristic does a nearest neighbor search using manhattan distance to 
+    estimate the cost between goals and pacman.
+    This is admissible for the same reasons manhattan distance is admissible
+    for a single goal
+    This heuristic is not consistent in general, but is consistent for the
+    special case where 
     """
     def manHanDist(xy1,xy2):
         return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
@@ -397,12 +407,12 @@ def cornersHeuristic(state, problem):
     new_state = copy.copy(state)
     pacman_pos = new_state[0]
     vstd_corners = new_state[1]
-
-    #loop through the corners, finding the closest one each time
+    
+    # while our heuristic hasn't visited all the corners
     while not allTrue(vstd_corners):
-        
         closest_food = sys.maxint
         cloest_food_i = -1
+        # find the closest food/corner that isn't visited
         for cnr_i in range(0,len(vstd_corners)):
             if not vstd_corners[cnr_i]:
                 mhdist = manHanDist(pacman_pos, corner_coords[cnr_i])
@@ -411,15 +421,23 @@ def cornersHeuristic(state, problem):
                     cloest_food_i = cnr_i
         
         #Let's pretend we've moved pacman to the nearest food and ate it
-        result =+ closest_food
+        result += closest_food
         pacman_pos = corner_coords[cloest_food_i]
         vstd_corners = (vstd_corners[:cloest_food_i] + (True,) + vstd_corners[cloest_food_i+1:])
-
-
+    
     return result 
+    """ ATTEMPT 1 """
     # for corner_index in range(0,4):
     #     if not vstd_corners[corner_index]:
-    #         result =+ manHanDist(state[0], corner_coords[corner_index])
+    #         result =+ manHanDist(pacman_pos, corner_coords[corner_index])
+    """ ATTEMPT 2 """
+    """ATTEMPT 3"""
+    # for cnr_i in range(0,len(vstd_corners)):
+    #     if not vstd_corners[cnr_i]:
+    #         mhdist = manHanDist(pacman_pos, corner_coords[cnr_i])
+    #         #Let's pretend we've moved pacman to the nearest food and ate it
+    #         result =+ mhdist
+    #         pacman_pos = corner_coords[cnr_i]
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"

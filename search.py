@@ -226,7 +226,6 @@ def uniformCostSearch(problem):
         parentState=dict[parent]
 
         for children in problem.getSuccessors(parent):
-            print children
             actionlist = copy.copy(parentState.getAction())
             actionlist.append(children[1])
             newcost = problem.getCostOfActions(actionlist)
@@ -266,32 +265,36 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     queue = PriorityQueue()
     dict[start] = node(start, 0, [], None)
     queue.push(start, heuristic(start,problem))
-
+ 
     while (not queue.isEmpty()):
-
-        parent = queue.pop()
+        
+        queueitem = queue.pop2()
+        parent_f = queueitem[0]
+        parent =  queueitem[2]
         parentState = dict[parent]
 
-        for children in problem.getSuccessors(parent):
+        for child in problem.getSuccessors(parent):
 
             actionlist = copy.copy(parentState.getAction())
-            actionlist.append(children[1])
+            actionlist.append(child[1])
 
-            if problem.isGoalState(children[0]) == False:
-
-                if dict.has_key(children[0]):
-                    if dict[children[0]].getCost() > parentState.getCost()+1:
-                        dict[children[0]].setCost(parentState.getCost()+1)
-                        dict[children[0]].setParent(parent)
-                        dict[children[0]].setAction(actionlist)
-                        queue.update(children[0], parentState.getCost()+1+dict[children[0]].getH())
+            if problem.isGoalState(child[0]) == False:
+                #if this state already has a ndoe associated with it
+                if dict.has_key(child[0]):
+                    old_node = dict[child[0]]
+                    child_cost = parentState.getCost()+child[2]
+                    if old_node.getCost() > child_cost:
+                        old_node.setCost(child_cost)
+                        old_node.setParent(parent)
+                        old_node.setAction(actionlist)
+                        queue.update(child[0], child_cost+old_node.getH())
 
                 else:
-                    h = nullHeuristic(children[0], problem)
-
-                    childrenState = node(children[0],parentState.getCost()+1, actionlist, parent,h)
-                    dict[children[0]] = childrenState
-                    queue.push(children[0], h+parentState.getCost()+1)
+                    h = heuristic(child[0], problem)
+                    childrenState = node(child[0],parentState.getCost()+child[2], actionlist, parent,h)
+                    dict[child[0]] = childrenState
+                    f = h + parentState.getCost()+child[2]
+                    queue.push(child[0], f)
             else:
                 return actionlist
 
