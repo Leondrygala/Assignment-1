@@ -215,36 +215,38 @@ def uniformCostSearch(problem):
     import copy
 
     queue = PriorityQueue()
-    start = problem.getStartState()
-    dict[start] = node(start, 0, [], None)
+    vstd_nodes = {}
+    start_state = problem.getStartState()
+    vstd_nodes[start_state] = node(start_state, 0, [], None)
+    queue.push(start_state,0)
 
-    queue.push(start,0)
-
-    while(not queue.isEmpty()):
+    while not queue.isEmpty():
 
         parent=queue.pop()
-        parentState=dict[parent]
+        parent_node=vstd_nodes[parent]
 
-        for children in problem.getSuccessors(parent):
-            actionlist = copy.copy(parentState.getAction())
-            actionlist.append(children[1])
-            newcost = problem.getCostOfActions(actionlist)
+        for child in problem.getSuccessors(parent):
+            actionlist = copy.copy(parent_node.getAction())
+            actionlist.append(child[1])
+            child_cost = parent_node.getCost() + child[2]
 
-            if problem.isGoalState(children[0]) == False:
+            if problem.isGoalState(child[0]) == False:
 
-                if dict.has_key(children[0]):
-                        if dict[children[0]].getCost()>newcost:
-
-                            dict[children[0]].setCost(newcost)
-                            dict[children[0]].setParent(parent)
-                            dict[children[0]].setAction(actionlist)
-                            queue.update(children[0],newcost)
+                if vstd_nodes.has_key(child[0]):
+                    old_node = vstd_nodes[child[0]]
+                    if old_node.getCost()>child_cost:
+                        old_node.setCost(child_cost)
+                        old_node.setParent(parent)
+                        old_node.setAction(actionlist)
+                        queue.update(child[0],child_cost)
                 else:
-                    childrenState = node(children[0], newcost , actionlist,  parent)
-                    dict[children[0]]=childrenState
-                    queue.push(children[0],newcost)
+                    child_node = node(child[0], child_cost , actionlist,  parent)
+                    vstd_nodes[child[0]]=child_node
+                    queue.push(child[0],child_cost)
             else:
                 return actionlist
+    print "uniformCostSearch: No path found!"
+    return []
 
 
 def nullHeuristic(state, problem=None):
@@ -263,7 +265,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
     start = problem.getStartState()
     queue = PriorityQueue()
-    dict[start] = node(start, 0, [], None)
+    vstd_nodes = {}
+    vstd_nodes[start] = node(start, 0, [], None)
     queue.push(start, heuristic(start,problem))
  
     while (not queue.isEmpty()):
@@ -271,7 +274,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         queueitem = queue.pop2()
         parent_f = queueitem[0]
         parent =  queueitem[2]
-        parentState = dict[parent]
+        parentState = vstd_nodes[parent]
 
         for child in problem.getSuccessors(parent):
 
@@ -280,8 +283,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
             if problem.isGoalState(child[0]) == False:
                 #if this state already has a ndoe associated with it
-                if dict.has_key(child[0]):
-                    old_node = dict[child[0]]
+                if vstd_nodes.has_key(child[0]):
+                    old_node = vstd_nodes[child[0]]
                     child_cost = parentState.getCost()+child[2]
                     if old_node.getCost() > child_cost:
                         old_node.setCost(child_cost)
@@ -292,11 +295,13 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 else:
                     h = heuristic(child[0], problem)
                     childrenState = node(child[0],parentState.getCost()+child[2], actionlist, parent,h)
-                    dict[child[0]] = childrenState
+                    vstd_nodes[child[0]] = childrenState
                     f = h + parentState.getCost()+child[2]
                     queue.push(child[0], f)
             else:
                 return actionlist
+    print "aStarSearch: No path found!"
+    return []
 
 # Abbreviations
 bfs = breadthFirstSearch
