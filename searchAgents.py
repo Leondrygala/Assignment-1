@@ -254,8 +254,9 @@ class StayWestSearchAgent(SearchAgent):
 
 def manhattanHeuristic(position, problem, info={}):
     "The Manhattan distance heuristic for a PositionSearchProblem"
-    xy1 = position
+    xy1 = position[0]
     xy2 = problem.goal
+    # print problem.goal
     return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
 
 def euclideanHeuristic(position, problem, info={}):
@@ -442,6 +443,7 @@ class FoodSearchProblem:
         self.startingGameState = startingGameState
         self._expanded = 0 # DO NOT CHANGE
         self.heuristicInfo = {} # A dictionary for the heuristic to store information
+        self.goal=(1,1)
 
     def getStartState(self):
         return self.start
@@ -511,9 +513,26 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
+
+
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+
+    from util import PriorityQueue
+    queue2 = PriorityQueue()
+
+    xy1 = position
+
+    goalCount = len(foodGrid.asList()) - 1;
+    for item in foodGrid.asList():
+        xy2 = item
+        queue2.push(item,abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1]))
+
+    nearst = queue2.pop()
+
+    return  abs(xy1[0] - nearst[0]) + abs(xy1[1] - nearst[1])+goalCount
+
+
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
