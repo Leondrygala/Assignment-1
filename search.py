@@ -271,9 +271,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
  
     while (not queue.isEmpty()):
         
-        queueitem = queue.pop2()
-        parent_f = queueitem[0]
-        parent =  queueitem[2]
+        parent = queue.pop()
         parentState = vstd_nodes[parent]
 
         for child in problem.getSuccessors(parent):
