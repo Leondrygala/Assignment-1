@@ -533,24 +533,129 @@ def foodHeuristic(state, problem):
     """
 
 
+    
+
+    def blockedDistance(walls, x_wall_left, x_wall_right, y_wall, verbose):
+        """
+        Takes a matrix of walls, the left and right most position of a horizontal
+        wall and the y axis of that wall and returns how much futher that wall
+        continues in both direction (eg if the wall extends 3 units left and 
+        2 units right it will return 2)
+        """
+        blocked_distance = 2
+        still_blocked = True
+        x_offset = 1
+        x_max = len(walls)
+
+        while still_blocked:
+            #make sure we're not going over the right hand side of the map
+            if x_wall_right + x_offset >= x_max:
+                if walls[x_wall_left-x_offset][y_wall]:
+                    blocked_distance += 2
+                    x_offset += 1
+                    continue
+                else: 
+                    break
+            #make sure we're not going over the left hand side of the map
+            if x_wall_left-x_offset < 1:
+                if walls[x_wall_right+x_offset][y_wall]:
+                    blocked_distance += 2
+                    x_offset += 1
+                    continue
+                else:
+                    break
+            #we can check both sides of the wall now we know it doesn't go out of bounds
+            if walls[x_wall_right+x_offset][y_wall] and walls[x_wall_left-x_offset][y_wall]:
+                blocked_distance += 2
+                x_offset += 1
+                continue
+            else: 
+                break
+        if verbose:
+            print "blockedDistance: x wall, y_wall", x_wall_left, x_wall_right, ",", y_wall
+            print "blockedDistance: dist", blocked_distance
+        return blocked_distance
+
+    def manhattanBlocked(xy1, xy2, input_walls):
+        verbose = False
+        # if xy1 == (1,3):
+        #     verbose = True
+        blocked_distance = 0
+        walls = copy.copy(input_walls)
+        for _ in range(2):
+            x_max = len(walls)
+            # is there enough space between y1 and y2 for a horizontal wall?
+            
+            if abs(xy1[1] - xy2[1]) > 1:
+                #swap values if y2 is less than y1
+                if xy2[1] < xy1[1]:
+                    temp = xy2
+                    xy2 = xy1
+                    xy1 = temp           
+                # look for walls along the x-axis
+                highest_blck_dist = 0
+                for y_wall in range(xy1[1]+1,xy2[1]):
+                    is_solid_x_wall = True
+                    x_left = xy1[0]
+                    x_right = xy2[0]
+
+                    # if x2 is actually on the left of x1
+                    if xy2[0] < xy1[0]:
+                        x_left = xy2[0]
+                        x_right = xy1[0]
+                    for x_wall in range(x_left, x_right+1) :
+                        if not walls[x_wall][y_wall]:
+                            is_solid_x_wall = False
+                            break # break the inner for loop, there is no continues wall here
+                    
+                    # if we've found a solid wall, check how long that wall is and add it to
+                    # the blocked distance
+                    if is_solid_x_wall:
+                        new_bd = blockedDistance(walls, x_left, x_right, y_wall, False)
+                        if new_bd > highest_blck_dist:
+                            highest_blck_dist = new_bd
+                
+                # add our largest blocked distance
+                blocked_distance += highest_blck_dist
+            # transpose our game and check for verticle walls
+            walls = zip(*walls)
+            xy1 = xy1[::-1]
+            xy2 = xy2[::-1]
+        
+        mhdist = abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+        # if verbose and blocked_distance > 0:
+        #     print "manhattanBlocked: state: ", xy2, " MHD is: ", mhdist, " blocked is ", blocked_distance
+
+        return (mhdist + blocked_distance)
+
+
     position, foodGrid = state
-
-    from util import PriorityQueue
-    queue2 = PriorityQueue()
-
     xy1 = position
+    if not 'walls' in problem.heuristicInfo:
+        wall_bools = []
+        for _ in range(problem.walls.width):
+            wall_bools.append([False]*problem.walls.height)
+        wall_coords = problem.walls.asList()
+        for coords in wall_coords:
+            wall_bools[coords[0]][coords[1]] = True
+        problem.heuristicInfo['walls'] = wall_bools
 
-    goalCount = len(foodGrid.asList()) - 1;
+    
+
+    furthest_goal = 0
     for item in foodGrid.asList():
         xy2 = item
-        queue2.push(item,abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1]))
+        mh_block_dist =  manhattanBlocked(xy1, xy2, problem.heuristicInfo['walls'])
+        mh_dist =  abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+        if mh_block_dist > furthest_goal:
+            furthest_goal = mh_block_dist
 
-    nearst = queue2.pop()
-
-    return  abs(xy1[0] - nearst[0]) + abs(xy1[1] - nearst[1])+goalCount
-
-
-
+    return (furthest_goal)
+    # for item in foodGrid.asList():
+    #     xy2 = item
+    #     mhdist =  abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+    #     if mhdist > furthest_goal:
+    #         furthest_goal = mhdist
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
