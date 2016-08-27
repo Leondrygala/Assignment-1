@@ -532,9 +532,6 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
 
-
-    
-
     def blockedDistance(walls, x_wall_left, x_wall_right, y_wall, verbose):
         """
         Takes a matrix of walls, the left and right most position of a horizontal
@@ -577,6 +574,34 @@ def foodHeuristic(state, problem):
         return blocked_distance
 
     def manhattanBlocked(xy1, xy2, input_walls):
+        """
+        Takes two cordinates and a matrix (list of list) of Boolean values 
+        representing walls. Returns the Manhattan distance + the blocked distance
+        If there is a solid 1D wall inbetween the two coords the blocked distance 
+        is a multiple of two for each excess wall unit.
+        eg
+
+        | 1 | _ | X | _ | _ |
+        | _ | _ | X | _ | _ |
+        | _ | _ | X | _ | _ |
+        | _ | _ | X | _ | 2 |       
+        | _ | _ | _ | _ | _ |
+
+        manHanDist = 7
+        blocked distance = 2
+        manhattanBlocked = mhd + b_d = 9
+
+        | _ | _ | X | _ | _ |
+        | _ | 1 | X | _ | _ |
+        | _ | _ | X | 2 | _ |
+        | _ | _ | X | _ | _ |
+        | _ | _ | _ | _ | _ |
+
+        manHanDist = 3
+        blocked distance = 4
+        manhattanBlocked = mhd + b_d = 7
+
+        """
         verbose = False
         # if xy1 == (1,3):
         #     verbose = True
@@ -651,11 +676,6 @@ def foodHeuristic(state, problem):
             furthest_goal = mh_block_dist
 
     return (furthest_goal)
-    # for item in foodGrid.asList():
-    #     xy2 = item
-    #     mhdist =  abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
-    #     if mhdist > furthest_goal:
-    #         furthest_goal = mhdist
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
