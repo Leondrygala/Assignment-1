@@ -1,3 +1,8 @@
+# EXTENDED BY LEON FRIEDRICH DRYGALA AND JIA WANG
+# FOR University of Melbourne COMP90047 Assignment 1
+# Further use or even knowledge of this file may be considered 
+# academic misconduct by your university. Be very careful.
+
 # searchAgents.py
 # ---------------
 # Licensing Information:  You are free to use or extend these projects for
@@ -670,8 +675,9 @@ def foodHeuristic(state, problem):
     furthest_goal = 0
     for item in foodGrid.asList():
         xy2 = item
+        
         mh_block_dist =  manhattanBlocked(xy1, xy2, problem.heuristicInfo['walls'])
-        mh_dist =  abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
+        # mh_dist =  abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
         if mh_block_dist > furthest_goal:
             furthest_goal = mh_block_dist
 

@@ -1,3 +1,8 @@
+# EXTENDED BY LEON FRIEDRICH DRYGALA AND JIA WANG
+# FOR University of Melbourne COMP90047 Assignment 1
+# Further use or even knowledge of this file may be considered 
+# academic misconduct by your university. Be very careful.
+
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
@@ -271,31 +276,47 @@ def aStarSearch(problem, heuristic=nullHeuristic):
  
     while (not queue.isEmpty()):
         
-        parent = queue.pop()
-        parentState = vstd_nodes[parent]
+        parent_item = queue.pop2()
+        # parent = queue.pop()
+        parent_state = parent_item[2]
+        parent_f = parent_item[0]
 
-        for child in problem.getSuccessors(parent):
+        parent_node = vstd_nodes[parent_state]
 
-            actionlist = copy.copy(parentState.getAction())
+        for child in problem.getSuccessors(parent_state):
+
+            actionlist = copy.copy(parent_node.getAction())
             actionlist.append(child[1])
 
             if problem.isGoalState(child[0]) == False:
                 #if this state already has a ndoe associated with it
                 if vstd_nodes.has_key(child[0]):
                     old_node = vstd_nodes[child[0]]
-                    child_cost = parentState.getCost()+child[2]
+                    child_cost = parent_node.getCost()+child[2]
                     if old_node.getCost() > child_cost:
                         old_node.setCost(child_cost)
-                        old_node.setParent(parent)
+                        old_node.setParent(parent_state)
                         old_node.setAction(actionlist)
                         queue.update(child[0], child_cost+old_node.getH())
+                        # print "aStarSearch: UPDATED", child[0][0]
+                        # if not old_node.getH() == heuristic(child[0], problem):
+                        #     print "aStarSearch: old and new h: ", old_node.getH(), ", ", heuristic(child[0], problem)
 
                 else:
                     h = heuristic(child[0], problem)
-                    childrenState = node(child[0],parentState.getCost()+child[2], actionlist, parent,h)
+                    childrenState = node(child[0],parent_node.getCost()+child[2], actionlist, parent_state,h)
                     vstd_nodes[child[0]] = childrenState
-                    f = h + parentState.getCost()+child[2]
+                    f = h + parent_node.getCost()+child[2]
                     queue.push(child[0], f)
+
+                    if (parent_f - f) > 1:
+                    # if child[0][0] == (18,4) and f != 20:
+                        print "aStarSearch: parent: ", parent_state[0], " child: ", child[0][0]
+                        print "aStarSearch: parent_f: ", parent_f, " child f:", f
+                        print "aStarSearch: parent_g: ", parent_node.getCost(), " child step cost:", child[2]
+                        print "aStarSearch: parent_h: ", parent_node.getH(), " child_h:", h
+                        print "aStarSearch: parent goals:", len(parent_state[1].asList()), "child_goals: ", len(child[0][1].asList())
+                        
             else:
                 return actionlist
     print "aStarSearch: No path found!"
